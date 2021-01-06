@@ -1,3 +1,4 @@
+const { RateLimiterMemory } = require('rate-limiter-flexible');
 const { Router } = require('express');
 const { SecretClient } = require('@azure/keyvault-secrets');
 const debug = require('debug')('acme:middleware');
@@ -7,15 +8,24 @@ const createAzureKeyVaultURL = require('./util/createAzureKeyVaultURL');
 
 const BASE64URL_PATTERN = /^[A-Za-z0-9-_]+$/u;
 
-module.exports = ({ azureCredential, azureKeyVaultName }) => {
-  debug(
-    `created using Azure Key Vault "${azureKeyVaultName}", will retrieve HTTP-01 challenge response from secrets.`
-  );
+const DEFAULT_RATE_LIMITER = new RateLimiterMemory({
+  duration: 1,
+  points: 10
+});
+
+module.exports = ({ azureCredential, azureKeyVaultName, rateLimiter = DEFAULT_RATE_LIMITER }) => {
+  debug(`created using Azure Key Vault "${azureKeyVaultName}", will retrieve HTTP-01 challenge response from secrets.`);
 
   const router = new Router();
   const secretClient = new SecretClient(createAzureKeyVaultURL(azureKeyVaultName), azureCredential);
 
   router.get('/.well-known/acme-challenge/:token', async (req, res, next) => {
+    try {
+      rateLimiter && (await rateLimiter.consume());
+    } catch (err) {
+      return res.status(429).end();
+    }
+
     const token = req.params.token;
 
     if (!BASE64URL_PATTERN.test(token)) {

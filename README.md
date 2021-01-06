@@ -16,6 +16,8 @@ Unlike [Greenlock](https://npmjs.com/package/greenlock), the whole operation is 
    - Improve security
    - Support serverless environment
 - No read/write to file system is required
+- Azure Key Vault is [inexpensive](https://azure.microsoft.com/en-us/pricing/details/key-vault/)
+   - Estimated billing for each certificate is less than USD 0.10 per month
 
 ## Why this package is interesting?
 
@@ -61,7 +63,7 @@ In some serverless environment, file system is not provided. For example, when d
 
 Although it is more efficient to use Azure blob storage for keeping HTTP-01 challenge responses, it will requires 2 separate resources and additional logistics.
 
-To simplify set up, we prefer to keep the HTTP-01 responses in Azure Key Vault as secret. Since we are not accessing these responses frequently, the impact on billing should be negligible.
+To simplify set up, we prefer to keep the HTTP-01 responses in Azure Key Vault as secret. Since we are not accessing these responses frequently, estimated billing for each certificate is less than USD 0.10 per month.
 
 As an additional benefit, Azure Key Vault will automatically expire responses, which help improving security.
 
@@ -104,7 +106,7 @@ For `http://mydomain.com/acme-enrollment-agent` SPN, it will need:
 
 ### Using the middleware
 
-Set the following environment variables, this is used by `@azure/identity` package to create login credential:
+Set the following environment variables on your Express server. This is used by `@azure/identity` package to create login credential:
 
 ```
 AZURE_CLIENT_ID=12345678-1234-5678-abcd-12345678abcd
@@ -134,9 +136,11 @@ app.use(
 );
 ```
 
+> Optionally, you can pass a `rateLimiter` option for [throttling requests](#throttling-requests). By default, the middleware will throttle at a rate of 10 requests per second.
+
 ### Running enrollment agent
 
-> To avoid rate-limiting, you should not order new certificate more than once a week.
+> To avoid rate-limiting by your SSL provider, you should not order new certificate more than once a week.
 
 You should run the enrollment steps periodically in your scheduled job.
 
@@ -189,7 +193,7 @@ https://docs.microsoft.com/en-us/azure/app-service/configure-ssl-certificate#imp
 
 ## Order certificate through GitHub Action
 
-You can use GitHub workflow to order a certificate periodically. This is a sample workflow file.
+You can use GitHub Action to order certificates periodically. This is a sample workflow file.
 
 ```yml
 name: ACME Enrollment
@@ -234,7 +238,25 @@ As always, when deploying code to production environment, your team should alway
 
 HTTP-01 challenge requires public `GET` request to `/.well-known/acme-challenge/`. And every `GET` request to this endpoint will trigger an Azure Key Vault operation.
 
-You should consider adding throttling to this endpoint to prevent unexpected bill incurring.
+By default, we use [`rate-limiter-flexible`](https://npmjs.com/package/rate-limiter-flexible) with memory-based throttling, up to 10 requests per second. If spam attack occurs at extreme rate, it will charge about USD 79 per month per server (based on pricing at the time of this writing, USD 0.03/10,000 operations).
+
+You can configure throttling by passing your own `RateLimiter` object.
+
+```js
+const { RateLimiterMemory } = require('rate-limiter-flexible');
+app.use(
+  createACMEMiddleware({
+    azureCredential: new DefaultAzureCredential(),
+    azureKeyVaultName: 'my-key-vault',
+    rateLimiter: new RateLimiterMemory({
+      duration: 1,
+      points: 10
+    })
+  })
+);
+```
+
+To disable throttling, pass a falsy value to `rateLimiter` option.
 
 ### Logging
 
