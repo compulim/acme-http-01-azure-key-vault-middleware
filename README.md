@@ -244,6 +244,7 @@ You can configure throttling by passing your own `RateLimiter` object.
 
 ```js
 const { RateLimiterMemory } = require('rate-limiter-flexible');
+
 app.use(
   createACMEMiddleware({
     azureCredential: new DefaultAzureCredential(),
@@ -257,6 +258,10 @@ app.use(
 ```
 
 To disable throttling, pass a falsy value to `rateLimiter` option.
+
+### Allow-listing IP addresses
+
+If your SSL provider publish IP addresses of their HTTP-01 challengers, you should allow-list them to reduce attack surface.
 
 ### Logging
 
