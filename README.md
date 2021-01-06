@@ -33,7 +33,7 @@ Do three things:
 
 1. Set up Azure Key Vault with 2 SPNs
 1. Install middleware to Express
-1. Run `.bin/acme-order` periodically with your scheduler
+1. Run `.bin/acme-order` periodically with your scheduler, such as GitHub Action
 
 ### Minimal access rights to Key Vault
 
@@ -51,7 +51,7 @@ Two separate Service Principal Names (SPN) is recommended for managing Key Vault
 
 The Express middleware is only used to respond to HTTP-01 challenges, which is prepared by enrollment agent. This reduce attack surfaces.
 
-If you are not on Node.js, you can consider porting it to the platform of your choice. It is about 50 lines only.
+If you are not on Node.js, you can consider porting it to the platform of your choice. It is [about 50 lines only](https://github.com/compulim/acme-http-01-azure-key-vault-middleware/blob/main/src/index.js).
 
 ### No file system read/write
 
@@ -145,7 +145,7 @@ To order a new certificate, set the following environment variables:
 ```
 ACME_ACCOUNT_CONTACT=mailto:johndoe@example.com
 ACME_ACCOUNT_TOS_AGREED=1
-ACME_DIRECTORY_URL=https://acme-staging-v02.api.letsencrypt.org/directory
+ACME_DIRECTORY_URL=https://acme-v02.api.letsencrypt.org/directory
 
 AZURE_CLIENT_ID=12345678-1234-5678-abcd-12345678abcd
 AZURE_CLIENT_SECRET=12345678-1234-5678-abcd-12345678abcd
@@ -158,6 +158,8 @@ KEY_VAULT_NAME=my-key-vault
 DOMAINS=mydomain.com
 ```
 
+> When testing, you should order it from https://acme-staging-v02.api.letsencrypt.org/directory instead.
+
 Then, run:
 
 ```sh
@@ -169,11 +171,11 @@ If succeeded, you should see:
 ```
 Creating or signing into ACME provider.
 Creating a new certificate order.
-Order created at https://acme-staging-v02.api.letsencrypt.org/acme/order/12345678/23456789.
+Order created at https://acme-v02.api.letsencrypt.org/acme/order/12345678/23456789.
 Preparing HTTP-01 challenge responses.
 Waiting for order to become ready.
-Order is ready for pickup (finalize) at https://acme-staging-v02.api.letsencrypt.org/acme/finalize/12345678/34567890.
-Downloading certificate from https://acme-staging-v02.api.letsencrypt.org/acme/cert/1234567890abcdef1234567890abcdef12345678.
+Order is ready for pickup (finalize) at https://acme-v02.api.letsencrypt.org/acme/finalize/12345678/34567890.
+Downloading certificate from https://acme-v02.api.letsencrypt.org/acme/cert/1234567890abcdef1234567890abcdef12345678.
 Certificate downloaded, serial number is 1234567890abcdef1234567890abcdef12345678 and will expires at 2021-01-01T12:34:56.789Z.
 Uploading certificate to Azure Key Vault as "my-ssl-certificate".
 Certificate uploaded to Azure Key Vault as "my-ssl-certificate".
@@ -184,6 +186,43 @@ Certificate uploaded to Azure Key Vault as "my-ssl-certificate".
 Follow this tutorial to enable SSL on Azure Web App with a certificate stored in Azure Key Vault.
 
 https://docs.microsoft.com/en-us/azure/app-service/configure-ssl-certificate#import-a-certificate-from-key-vault
+
+## Order certificate through GitHub Action
+
+You can use GitHub workflow to order a certificate periodically. This is a sample workflow file.
+
+```yml
+name: ACME Enrollment
+
+on:
+  schedule:
+  - cron: '34 12 1 * *'
+
+jobs:
+  order:
+    name: Order
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: npx -p acme-http-01-azure-key-vault-middleware acme-order
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.ACME_ENROLLMENT_AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.ACME_ENROLLMENT_AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.ACME_ENROLLMENT_AZURE_TENANT_ID }}
+
+          ACME_ACCOUNT_CONTACT: mailto:johndoe@example.com
+          ACME_ACCOUNT_TOS_AGREED: 1
+          ACME_DIRECTORY_URL: https://acme-v02.api.letsencrypt.org/directory
+
+          KEY_VAULT_ACME_ACCOUNT_KEY_NAME: my-acme-key
+          KEY_VAULT_CERTIFICATE_NAME: my-ssl-certificate
+          KEY_VAULT_NAME: my-key-vault
+
+          DOMAINS: mydomain.com
+```
 
 ## Going production
 
