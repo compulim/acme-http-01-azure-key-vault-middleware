@@ -16,7 +16,7 @@ Unlike [Greenlock](https://npmjs.com/package/greenlock), the whole operation is 
 
 ## Inexpensive
 
-Estimated cost for Azure Key Vault on each certificate issued by [Let's Encrypt](https://letsencrypt.org/) is less than USD 0.10 per month.
+Estimated cost for Azure Key Vault on each certificate issued by [Let's Encrypt](https://letsencrypt.org/) is less than USD 0.10 per month, given 1 certificate renewal per week.
 
 ## Easy to set up
 
@@ -249,6 +249,6 @@ You may want to log all requests made to `/.well-known/acme-challenge/` for moni
 
 (TBD)
 
--
+---
 
-> Greenlock™ is a trademark of AJ ONeal
+> Greenlock&trade; is a trademark of AJ ONeal
