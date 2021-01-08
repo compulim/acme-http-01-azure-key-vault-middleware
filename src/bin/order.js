@@ -31,7 +31,7 @@ const cli = require('../cli/index');
     throw new Error('Environment variable "KEY_VAULT_NAME" must be set');
   }
 
-  cli.order({
+  await cli.order({
     acmeAccountContacts: ACME_ACCOUNT_CONTACTS.split(',').map(contact => contact.trim()),
     acmeAccountKeyName: KEY_VAULT_ACME_ACCOUNT_KEY_NAME,
     acmeAccountTermsOfServiceAgreed: !!ACME_ACCOUNT_TOS_AGREED,
