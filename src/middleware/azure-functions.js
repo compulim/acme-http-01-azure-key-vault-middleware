@@ -5,8 +5,10 @@ module.exports = ({ azureCredential, azureKeyVaultName }) => {
     let challengeResponse;
 
     try {
-      challengeResponse = await fetchChallengeResponse({ azureCredential, azureKeyVaultName });
+      challengeResponse = await fetchChallengeResponse({ azureCredential, azureKeyVaultName, token: context.bindingData.token });
     } catch (err) {
+      context.log(err.message);
+
       if (err instanceof TypeError) {
         context.res = { status: 400 };
 
