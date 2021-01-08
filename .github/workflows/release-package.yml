@@ -74,6 +74,7 @@ jobs:
       - name: Run npm dist-tag add ${{ steps.read-package-json.outputs.name }}@${{ steps.read-package-json.outputs.version }} latest
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
+          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}
           npm dist-tag add ${{ steps.read-package-json.outputs.name }}@${{ steps.read-package-json.outputs.version }} latest
 
       - name: Draft a new release
