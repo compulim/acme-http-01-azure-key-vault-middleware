@@ -58,6 +58,7 @@ You can use the certificates on Azure Functions and [ZIP file deployment on Azur
 1. Attaching the Express middleware
    1. [Set up environment variables in Azure Web Apps](#set-up-environment-variables-in-azure-web-apps)
    1. [Install NPM packages](#install-npm-packages)
+   1. [Enable custom domain](#enable-custom-domain)
 1. [Running enrollment agent](#running-enrollment-agent)
 1. [Setting up SSL bindings on Azure Web Apps](#setting-up-ssl-bindings-on-azure-web-apps)
 
@@ -135,6 +136,10 @@ app.use(
 ```
 
 > Optionally, you can pass a `rateLimiter` option for [throttling requests](#throttling-requests). By default, the middleware will throttle at a rate of 10 requests per second and 100 requests per 5 minutes.
+
+### Enable custom domain
+
+Follow [this article](https://docs.microsoft.com/en-us/azure/app-service/manage-custom-dns-buy-domain#map-app-service-domain-to-your-app) to add your custom domain to your Azure Web Apps.
 
 ## Running enrollment agent
 
