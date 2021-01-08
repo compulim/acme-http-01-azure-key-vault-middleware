@@ -5,9 +5,13 @@
 #   ACME_ENROLLMENT_AZURE_CLIENT_SECRET
 #   ACME_ENROLLMENT_AZURE_TENANT_ID
 
-name: ACME Enrollment
+name: 'ACME: Order certificate'
 
 on:
+  push:
+    paths:
+      - '.github/workflows/order-certificate.yml'
+
   schedule:
   # Test your CRON expression at https://crontab.guru/#34_12_1_*_*
   - cron: '34 12 1 * *'
@@ -21,7 +25,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12
-      - run: npx -p acme-http-01-azure-key-vault-middleware acme-order
+      - run: npx -p acme-http-01-azure-key-vault-middleware order
         env:
           AZURE_CLIENT_ID: ${{ secrets.ACME_ENROLLMENT_AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.ACME_ENROLLMENT_AZURE_CLIENT_SECRET }}
