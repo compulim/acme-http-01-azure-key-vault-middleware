@@ -6,6 +6,7 @@
     "order": "src/bin/order.js"
   },
   "files": [
+    "azure-functions.js",
     "express.js",
     "README.md",
     "src/**/*"
