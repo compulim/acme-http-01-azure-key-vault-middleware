@@ -13,6 +13,14 @@
   "scripts": {},
   "author": "William Wong (https://github.com/compulim)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/compulim/acme-http-01-azure-key-vault-middleware.git"
+  },
+  "bugs": {
+    "url": "https://github.com/compulim/acme-http-01-azure-key-vault-middleware/issues"
+  },
+  "homepage": "https://github.com/compulim/acme-http-01-azure-key-vault-middleware#readme",
   "keywords": [
     "8555",
     "acme",
