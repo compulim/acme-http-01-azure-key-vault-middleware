@@ -25,7 +25,7 @@ The solution is cloud native and easy to set up.
 1. Set up Azure Key Vault
 1. Install the middleware
 1. Run enrollment agent periodically
-1. Bind the SSL certificate to your Azure Web Apps
+1. Bind the SSL certificate to your Azure Web Apps or Azure Functions
 
 ## Isolated access rights to Key Vault
 
@@ -57,26 +57,28 @@ In this sample setup, we are assuming you are installing SSL certificates for an
    1. [Set up ACME account key](#set-up-an-account-key-for-your-acme-provider)
    1. [Create Service Principal Names](#create-service-principal-names)
    1. [Assign access policies to Service Principal Names](#assign-access-policies-to-service-principal-names)
-1. Attaching the middleware
+1. Using the middleware
    1. [Set up environment variables in Azure Web Apps](#set-up-environment-variables-in-azure-web-apps)
    1. [Install NPM packages](#install-npm-packages)
    1. [Enable custom domain](#enable-custom-domain)
 1. [Running enrollment agent](#running-enrollment-agent)
-1. [Setting up SSL bindings on Azure Web Apps](#setting-up-ssl-bindings-on-azure-web-apps)
+1. [Setting up SSL bindings](#setting-up-ssl-bindings)
 
-## Create a new Azure Key Vault
+## Set up Azure Key Vault
+
+### Create a new Azure Key Vault
 
 > It is recommended to set up a new Azure Key Vault resource for each certificate.
 
 Visit https://portal.azure.com/#create/Microsoft.KeyVault to create a new Azure Key Vault.
 
-## Set up an account key for your ACME provider
+### Set up an account key for your ACME provider
 
 On your Azure Key Vault, generate or import a key to use with your ACME provider. For Let's Encrypt, it support key algorithm EC P-256.
 
 You can follow [this article](https://docs.microsoft.com/en-us/azure/key-vault/keys/quick-create-portal#add-a-key-to-key-vault) to add a key.
 
-## Create Service Principal Names
+### Create Service Principal Names
 
 Create Service Principal Names using Azure CLI. `az` is preinstalled on [Azure Cloud Shell](https://shell.azure.com/) and can be accessed using Azure Portal or [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701).
 
@@ -89,7 +91,7 @@ Write down both results. We will use it throughout this guide.
 
 > These steps are from [this article](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli#create-a-service-principal).
 
-## Assign access policies to Service Principal Names
+### Assign access policies to Service Principal Names
 
 On your Azure Key Vault, add access policies for each SPNs. Follow [this article](https://docs.microsoft.com/en-us/azure/key-vault/general/assign-access-policy-portal) to assign new access policies.
 
@@ -103,6 +105,8 @@ On your Azure Key Vault, add access policies for each SPNs. Follow [this article
 ## Using the middleware
 
 You can use the SSL certificate on any services supported by Azure Key Vault. For simplicity, we are setting it up on [Express](https://expressjs.com/) hosted on Azure Web Apps.
+
+You can also use this package on Azure Functions, please refer to [this article](https://github.com/compulim/acme-http-01-azure-key-vault-middleware/tree/master/samples/azure-functions/README.md`).
 
 ### Set up environment variables in Azure Web Apps
 
@@ -145,7 +149,7 @@ app.use(
 
 ### Enable custom domain
 
-Follow [this article](https://docs.microsoft.com/en-us/azure/app-service/manage-custom-dns-buy-domain#map-app-service-domain-to-your-app) to add your custom domain to your Azure Web Apps.
+Follow [this article](https://docs.microsoft.com/en-us/azure/app-service/manage-custom-dns-buy-domain#map-app-service-domain-to-your-app) to add your custom domain to your Azure Web Apps. Or [this article](https://docs.microsoft.com/en-us/azure/app-service/manage-custom-dns-buy-domain#map-app-service-domain-to-your-app) for Azure Functions.
 
 ## Running enrollment agent
 
@@ -194,11 +198,13 @@ Uploading certificate to Azure Key Vault as "my-ssl-certificate".
 Certificate uploaded to Azure Key Vault as "my-ssl-certificate".
 ```
 
-## Setting up SSL bindings on Azure Web Apps
+## Setting up SSL bindings
 
 After the first SSL certificate is uploaded to Azure Key Vault, you can start using it in your Azure Web Apps. Follow this tutorial to enable SSL on web app.
 
 https://docs.microsoft.com/en-us/azure/app-service/configure-ssl-certificate#import-a-certificate-from-key-vault
+
+If you are using the certificates on Azure Functions, please follow [this tutorial](https://docs.microsoft.com/en-us/azure/app-service/configure-ssl-certificate#import-a-certificate-from-key-vault).
 
 # Going production
 
