@@ -31,7 +31,7 @@ jobs:
           AZURE_CLIENT_SECRET: ${{ secrets.ACME_ENROLLMENT_AZURE_CLIENT_SECRET }}
           AZURE_TENANT_ID: ${{ secrets.ACME_ENROLLMENT_AZURE_TENANT_ID }}
 
-          ACME_ACCOUNT_CONTACT: mailto:johndoe@mydomain.com
+          ACME_ACCOUNT_CONTACTS: mailto:johndoe@mydomain.com
           ACME_ACCOUNT_TOS_AGREED: 1
           ACME_DIRECTORY_URL: https://acme-v02.api.letsencrypt.org/directory
           # Use https://acme-staging-v02.api.letsencrypt.org/directory for testing purpose
