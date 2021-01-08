@@ -1,7 +1,7 @@
 const { CryptographyClient } = require('@azure/keyvault-keys');
 const crypto = require('crypto');
 
-const toBase64URL = require('../util/toBase64URL');
+const toBase64URL = require('../../util/toBase64URL');
 
 module.exports = async function signAsFlattenedJWS(credential, keyVaultKey, keyId, protectedHeaders, payload) {
   const base64URLPayload = payload ? toBase64URL(JSON.stringify(payload)) : '';

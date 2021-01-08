@@ -1,0 +1,39 @@
+# This is GitHub workflow file for running enrollment agent
+
+# Set up the following secrets for your enrollment agent SPN:
+#   ACME_ENROLLMENT_AZURE_CLIENT_ID
+#   ACME_ENROLLMENT_AZURE_CLIENT_SECRET
+#   ACME_ENROLLMENT_AZURE_TENANT_ID
+
+name: ACME Enrollment
+
+on:
+  schedule:
+  # Test your CRON expression at https://crontab.guru/#34_12_1_*_*
+  - cron: '34 12 1 * *'
+
+jobs:
+  order:
+    name: Order
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: npx -p acme-http-01-azure-key-vault-middleware acme-order
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.ACME_ENROLLMENT_AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.ACME_ENROLLMENT_AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.ACME_ENROLLMENT_AZURE_TENANT_ID }}
+
+          ACME_ACCOUNT_CONTACT: mailto:johndoe@mydomain.com
+          ACME_ACCOUNT_TOS_AGREED: 1
+          ACME_DIRECTORY_URL: https://acme-v02.api.letsencrypt.org/directory
+          # Use https://acme-staging-v02.api.letsencrypt.org/directory for testing purpose
+
+          KEY_VAULT_ACME_ACCOUNT_KEY_NAME: my-acme-key
+          KEY_VAULT_CERTIFICATE_NAME: my-ssl-certificate
+          KEY_VAULT_NAME: my-key-vault
+
+          DOMAINS: mydomain.com

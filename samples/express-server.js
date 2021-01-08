@@ -1,11 +1,11 @@
 require('dotenv/config');
 
-const { PORT = 5000 } = process.env;
+const { PORT = 80 } = process.env;
 
 const app = require('express')();
 const { DefaultAzureCredential } = require('@azure/identity');
 
-const createACMEMiddleware = require('../src/index');
+const createACMEMiddleware = require('acme-http-01-azure-key-vault-middleware/express');
 
 app.use(
   createACMEMiddleware({

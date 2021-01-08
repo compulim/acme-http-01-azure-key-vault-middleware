@@ -4,56 +4,39 @@ const debug = require('debug')('acme:cli');
 const forge = require('node-forge');
 
 const ACMEClient = require('./ACMEClient');
-const createAzureKeyVaultURL = require('./util/createAzureKeyVaultURL');
-const createCertificationRequest = require('./util/createCertificationRequest');
-const createChallengeSecretName = require('./util/createChallengeSecretName');
-const fromBase64URL = require('./util/fromBase64URL');
+const createAzureKeyVaultURL = require('../util/createAzureKeyVaultURL');
+const createCertificationRequest = require('../util/createCertificationRequest');
+const createChallengeSecretName = require('../util/createChallengeSecretName');
+const fromBase64URL = require('../util/fromBase64URL');
 
-const ALLOW_RENEWAL_DURATION = 86400000 * 14;
 const CHECK_ORDER_LOOP = 5;
 const CHECK_ORDER_INTERVAL = 1000;
 const LETS_ENCRYPT_STAGING_DIRECTORY_URL = 'https://acme-staging-v02.api.letsencrypt.org/directory';
 
-async function shouldOrder({ azureCredential, azureKeyVaultName, sslCertificateKeyVaultName }) {
-  const client = new CertificateClient(createAzureKeyVaultURL(azureKeyVaultName), azureCredential);
-  let certificate;
-
-  try {
-    certificate = await client.getCertificate(sslCertificateKeyVaultName);
-  } catch (err) {
-    if (err.code === 'CertificateNotFound') {
-      return true;
-    }
-
-    throw err;
-  }
-
-  return Date.now() + ALLOW_RENEWAL_DURATION > certificate.properties.expiresOn;
-}
-
 async function order({
-  acmeAccountContact,
+  acmeAccountContacts,
   acmeAccountKeyName,
   acmeAccountTermsOfServiceAgreed,
   acmeDirectoryURL = LETS_ENCRYPT_STAGING_DIRECTORY_URL,
   azureCredential,
   azureKeyVaultName,
   domains,
-  force,
   sslCertificateKeyVaultName
 }) {
-  if (!force) {
-    const orderNeeded = await shouldOrder({
-      azureCredential,
-      azureKeyVaultName,
-      sslCertificateKeyVaultName
-    });
-
-    if (!orderNeeded) {
-      return console.log(`Certificate was found and expiration was not imminent, no need to order new certificate.`);
-    }
-
-    console.log('No certificates were found or expiration is imminent, ordering a new certificate.');
+  if (!acmeAccountContacts) {
+    throw new Error('"acmeAccountContacts" must be specified');
+  } else if (!acmeAccountKeyName) {
+    throw new Error('"acmeAccountKeyName" must be specified');
+  } else if (!acmeAccountTermsOfServiceAgreed) {
+    throw new Error('"acmeAccountTermsOfServiceAgreed" must be specified');
+  } else if (!azureCredential) {
+    throw new Error('"azureCredential" must be specified');
+  } else if (!azureKeyVaultName) {
+    throw new Error('"azureKeyVaultName" must be specified');
+  } else if (!domains) {
+    throw new Error('"domains" must be specified');
+  } else if (!sslCertificateKeyVaultName) {
+    throw new Error('"sslCertificateKeyVaultName" must be specified');
   }
 
   debug(`creating a new ACME account or signing into existing one`);
@@ -69,7 +52,7 @@ async function order({
 
   try {
     await acmeClient.newAccount({
-      contact: acmeAccountContact,
+      contact: acmeAccountContacts,
       termsOfServiceAgreed: acmeAccountTermsOfServiceAgreed
     });
   } catch (err) {
@@ -105,56 +88,56 @@ async function order({
 
     const secretClient = new SecretClient(createAzureKeyVaultURL(azureKeyVaultName), azureCredential);
 
-    await Promise.all(
-      authorizations.map(async authorizationURL => {
-        let authorizeResult;
+    // Since anti-replay nonce will block when reusing a nonce, we cannot use Promise.all to parallel the call.
 
-        try {
-          authorizeResult = await acmeClient.authorize(authorizationURL);
-        } catch (err) {
-          console.error(`Failed to get authorization information from ${authorizationURL}.`);
+    for (let authorizationURL of authorizations) {
+      let authorizeResult;
 
-          throw err;
-        }
+      try {
+        authorizeResult = await acmeClient.authorize(authorizationURL);
+      } catch (err) {
+        console.error(`Failed to get authorization information from ${authorizationURL}.`);
 
-        const { challenges, identifier } = authorizeResult;
-        const http01Challenge = challenges.find(({ type }) => type === 'http-01');
+        throw err;
+      }
 
-        if (!http01Challenge) {
-          throw new Error('no HTTP-01 challenge found, ACME server must support HTTP-01 challenges');
-        }
+      const { challenges, identifier } = authorizeResult;
+      const http01Challenge = challenges.find(({ type }) => type === 'http-01');
 
-        debug(`got HTTP-01 challenge for ${identifier.type}:${identifier.value}`, {
-          authorizationURL,
-          http01Challenge,
-          identifier
+      if (!http01Challenge) {
+        throw new Error('No HTTP-01 challenge found, ACME server must support HTTP-01 challenges');
+      }
+
+      debug(`got HTTP-01 challenge for ${identifier.type}:${identifier.value}`, {
+        authorizationURL,
+        http01Challenge,
+        identifier
+      });
+
+      const { token } = http01Challenge;
+
+      const challengeResponse = await acmeClient.prepareHTTP01ChallengeResponse(token);
+
+      try {
+        await secretClient.setSecret(createChallengeSecretName(token), challengeResponse, {
+          expiresOn: new Date(expires)
         });
+      } catch (err) {
+        console.error(`Failed to upload HTTP-01 challenge response to Azure Key Vault as a secret.`);
 
-        const { token } = http01Challenge;
+        throw err;
+      }
 
-        const challengeResponse = await acmeClient.prepareHTTP01ChallengeResponse(token);
+      debug(`signaling readiness for HTTP-01 challenge`);
 
-        try {
-          await secretClient.setSecret(createChallengeSecretName(token), challengeResponse, {
-            expiresOn: new Date(expires)
-          });
-        } catch (err) {
-          console.error(`Failed to upload HTTP-01 challenge response to Azure Key Vault as a secret.`);
+      try {
+        await acmeClient.post(http01Challenge.url);
+      } catch (err) {
+        console.error(`Failed to send HTTP-01 challenge acceptance.`);
 
-          throw err;
-        }
-
-        debug(`signaling readiness for HTTP-01 challenge`);
-
-        try {
-          await acmeClient.post(http01Challenge.url);
-        } catch (err) {
-          console.error(`Failed to send HTTP-01 challenge acceptance.`);
-
-          throw err;
-        }
-      })
-    );
+        throw err;
+      }
+    }
   }
 
   if (!orderReady) {
@@ -250,4 +233,4 @@ async function order({
   console.log(`Certificate uploaded to Azure Key Vault as "${sslCertificateKeyVaultName}".`);
 }
 
-module.exports = { order, shouldOrder };
+module.exports = { order };

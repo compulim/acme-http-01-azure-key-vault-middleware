@@ -1,30 +1,48 @@
 {
   "name": "acme-http-01-azure-key-vault-middleware",
   "version": "0.0.0-0",
-  "description": "Express middleware for ACME HTTP-01 challenge over Azure Key Vault",
+  "description": "Use Let's Encrypt and other RFC 8555 providers natively and securely on Azure",
   "bin": {
-    "acme-order": "src/cli/acme-order.js"
+    "order": "src/bin/order.js"
   },
   "files": [
     "README.md",
     "src/**/*"
   ],
-  "main": "src/index.js",
   "scripts": {},
   "author": "William Wong (https://github.com/compulim)",
   "license": "MIT",
+  "keywords": [
+    "8555",
+    "acme",
+    "azure",
+    "greenlock",
+    "http-01",
+    "key vault",
+    "keyvault",
+    "lets encrypt",
+    "letsencrypt",
+    "rfc8555",
+    "rfc 8555",
+    "web apps",
+    "webapps"
+  ],
   "dependencies": {
+    "@azure/keyvault-secrets": "4.1.0",
+    "debug": "^4.3.1",
+    "rate-limiter-flexible": "^2.1.16"
+  },
+  "devDependencies": {
     "@azure/identity": "1.2.0",
     "@azure/keyvault-certificates": "4.1.0",
     "@azure/keyvault-keys": "4.1.0",
-    "@azure/keyvault-secrets": "4.1.0",
-    "debug": "4.3.1",
-    "node-fetch": "2.6.1",
-    "node-forge": "0.10.0",
-    "rate-limiter-flexible": "2.1.16"
-  },
-  "devDependencies": {
     "dotenv": "8.2.0",
-    "express": "4.17.1"
+    "express": "4.17.1",
+    "node-fetch": "2.6.1",
+    "node-forge": "0.10.0"
+  },
+  "peerDependencies": {
+    "@azure/identity": "*",
+    "express": "4.*"
   }
 }

@@ -1,19 +1,31 @@
-const { RateLimiterMemory } = require('rate-limiter-flexible');
+const { BurstyRateLimiter, RateLimiterMemory } = require('rate-limiter-flexible');
 const { Router } = require('express');
 const { SecretClient } = require('@azure/keyvault-secrets');
 const debug = require('debug')('acme:middleware');
 
-const createChallengeSecretName = require('./util/createChallengeSecretName');
-const createAzureKeyVaultURL = require('./util/createAzureKeyVaultURL');
+const createChallengeSecretName = require('../util/createChallengeSecretName');
+const createAzureKeyVaultURL = require('../util/createAzureKeyVaultURL');
 
 const BASE64URL_PATTERN = /^[A-Za-z0-9-_]+$/u;
 
-const DEFAULT_RATE_LIMITER = new RateLimiterMemory({
-  duration: 1,
-  points: 10
-});
+const DEFAULT_RATE_LIMITER = new BurstyRateLimiter(
+  new RateLimiterMemory({
+    duration: 300,
+    points: 100
+  }),
+  new RateLimiterMemory({
+    duration: 1,
+    points: 50
+  })
+);
 
 module.exports = ({ azureCredential, azureKeyVaultName, rateLimiter = DEFAULT_RATE_LIMITER }) => {
+  if (!azureCredential) {
+    throw new Error('"azureCredential" must be specified');
+  } else if (!azureKeyVaultName) {
+    throw new Error('"azureKeyVaultName" must be specified');
+  }
+
   debug(`created using Azure Key Vault "${azureKeyVaultName}", will retrieve HTTP-01 challenge response from secrets.`);
 
   const router = new Router();

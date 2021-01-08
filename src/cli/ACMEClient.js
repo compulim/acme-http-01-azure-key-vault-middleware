@@ -2,11 +2,11 @@ const { KeyClient } = require('@azure/keyvault-keys');
 const debug = require('debug')('acme:client');
 const fetch = require('node-fetch');
 
-const createAzureKeyVaultURL = require('./util/createAzureKeyVaultURL');
+const createAzureKeyVaultURL = require('../util/createAzureKeyVaultURL');
 const createThumbprintFromJWK = require('./keyVault/createThumbprintFromJWK');
-const lazy = require('./util/lazy');
+const lazy = require('../util/lazy');
 const signAsFlattenedJWS = require('./keyVault/signAsFlattenedJWS');
-const toBase64URL = require('./util/toBase64URL');
+const toBase64URL = require('../util/toBase64URL');
 
 class ACMEClient {
   constructor({ acmeAccountKeyName, acmeDirectoryURL, azureCredential, azureKeyVaultName }) {

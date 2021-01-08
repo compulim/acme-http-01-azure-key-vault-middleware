@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-const toBase64URL = require('../util/toBase64URL');
+const toBase64URL = require('../../util/toBase64URL');
 
 module.exports = async function createThumbprintFromJWK(keyVaultKey) {
   const { key } = keyVaultKey;
