@@ -176,7 +176,7 @@ DOMAINS=mydomain.com,myanotherdomain.com
 Then, run:
 
 ```sh
-npx -p acme-http-01-azure-key-vault-middleware order
+npx -p acme-http-01-azure-key-vault-middleware@1 order
 ```
 
 If succeeded, you should see:
