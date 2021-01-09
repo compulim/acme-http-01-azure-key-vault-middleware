@@ -6,6 +6,10 @@ Supports Azure Web Apps, Azure Functions, Azure Front Door, Azure CDN, and [serv
 
 We use popular and high-quality industry standard libraries: [`node-fetch`](https://npmjs.com/package/node-fetch), [`node-forge`](https://npmjs.com/package/node-forge), [`@azure/keyvault-*`](https://npmjs.com/package/keyvault-certificates).
 
+# Breaking changes
+
+In 2.0.0, we further restricted access policy for web server. Please change it from "get secret" to "list secret".
+
 # Why another ACME middleware?
 
 Unlike [Greenlock](https://npmjs.com/package/greenlock), the whole operation is done over Azure Key Vault. It gives us a few benefits:
@@ -227,7 +231,7 @@ As always, when deploying code to production environment, your team should alway
 
 HTTP-01 challenge requires public `GET` request to `/.well-known/acme-challenge/`. And every `GET` request to this endpoint will trigger an Azure Key Vault operation.
 
-By default, we use [`rate-limiter-flexible`](https://npmjs.com/package/rate-limiter-flexible) with memory-based [bursty throttling](https://github.com/animir/node-rate-limiter-flexible/wiki/BurstyRateLimiter), up to 50 requests per second or 100 requests per 5 minutes. If spam attack occurs at extreme rate, it will cost about USD 3 per month per server (based on Azure Key Vault pricing at the time of this writing, at USD 0.03/10,000 operations).
+By default, in our Express middleware, we use [`rate-limiter-flexible`](https://npmjs.com/package/rate-limiter-flexible) with memory-based [bursty throttling](https://github.com/animir/node-rate-limiter-flexible/wiki/BurstyRateLimiter), up to 50 requests per second or 100 requests per 5 minutes. If spam attack occurs at extreme rate, it will cost about USD 3 per month per server (based on Azure Key Vault pricing at the time of this writing, at USD 0.03/10,000 operations).
 
 You can configure throttling by passing your own `RateLimiter` object.
 
