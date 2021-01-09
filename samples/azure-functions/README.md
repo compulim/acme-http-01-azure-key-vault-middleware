@@ -2,6 +2,8 @@
 
 You can use this package inside Azure Functions.
 
+> Due to the serverless nature of Azure Functions, we do not ship with rate limiter.
+
 ## Set up
 
 - [Install NPM packages](#install-npm-packages)

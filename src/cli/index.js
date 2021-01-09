@@ -116,11 +116,14 @@ async function order({
 
       const { token } = http01Challenge;
 
-      const challengeResponse = await acmeClient.prepareHTTP01ChallengeResponse(token);
+      const response = await acmeClient.prepareHTTP01ChallengeResponse(token);
 
       try {
-        await secretClient.setSecret(createChallengeSecretName(token), challengeResponse, {
-          expiresOn: new Date(expires)
+        await secretClient.setSecret(createChallengeSecretName(token), '', {
+          expiresOn: new Date(expires),
+          tags: {
+            response
+          }
         });
       } catch (err) {
         console.error(`Failed to upload HTTP-01 challenge response to Azure Key Vault as a secret.`);

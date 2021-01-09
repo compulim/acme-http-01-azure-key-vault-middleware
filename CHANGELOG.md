@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking changes
+
+- Access rights for web server has been changed from "get secrets" to "list secrets"
+
 ### Added
 
-- Adding support for Azure Functions
+- Added support for Azure Functions 🎉
 
 ## [1.0.0] - 2021-01-08
 

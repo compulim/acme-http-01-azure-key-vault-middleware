@@ -19,12 +19,10 @@ module.exports = async function fetchChallengeResponse({ azureCredential, azureK
 
   debug(`received an ACME challenge for token "${token}"`);
 
-  let challengeResponse;
-
   try {
-    const { value } = await secretClient.getSecret(createChallengeSecretName(token));
-
-    challengeResponse = value;
+    for await (let { tags } of secretClient.listPropertiesOfSecretVersions(createChallengeSecretName(token))) {
+      return tags.response;
+    }
   } catch (err) {
     if (err.code === 'SecretNotFound') {
       const error = new Error('ACME challenge not found');
@@ -40,6 +38,4 @@ module.exports = async function fetchChallengeResponse({ azureCredential, azureK
 
     throw err;
   }
-
-  return challengeResponse;
 };

@@ -30,8 +30,10 @@ module.exports = ({ azureCredential, azureKeyVaultName, rateLimiter = DEFAULT_RA
     let challengeResponse;
 
     try {
-      challengeResponse = await fetchChallengeResponse({ azureCredential, azureKeyVaultName });
+      challengeResponse = await fetchChallengeResponse({ azureCredential, azureKeyVaultName, token: req.params.token });
     } catch (err) {
+      debug(`failed to get challenge response`, err);
+
       if (err instanceof TypeError) {
         return res.status(400).end();
       }
