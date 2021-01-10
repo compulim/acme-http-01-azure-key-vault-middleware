@@ -9,11 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
-- Access rights for web server has been changed from "get secrets" to "list secrets"
+- Access rights requirement for web server has been changed from "get secrets" to "list secrets"
 
 ### Added
 
 - Added support for Azure Functions 🎉
+
+### Changed
+
+- Bumped [`@azure/identity@1.2.1`](https://npmjs.com/package/@azure/identity)
 
 ## [1.0.0] - 2021-01-08
 

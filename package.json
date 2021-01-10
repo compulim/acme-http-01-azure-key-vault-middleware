@@ -41,7 +41,7 @@
     "webapps"
   ],
   "dependencies": {
-    "@azure/identity": "^1.2.0",
+    "@azure/identity": "^1.2.1",
     "@azure/keyvault-certificates": "4.1.0",
     "@azure/keyvault-keys": "4.1.0",
     "@azure/keyvault-secrets": "4.1.0",
@@ -52,7 +52,7 @@
     "rate-limiter-flexible": "^2.1.16"
   },
   "peerDependencies": {
-    "@azure/identity": "^1.2.0",
+    "@azure/identity": "^1.2.1",
     "express": "^4.17.1"
   }
 }
